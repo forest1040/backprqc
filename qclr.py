@@ -18,7 +18,7 @@ from qulacs import (
 )
 from qulacs.gate import DenseMatrix
 
-from backprop import python_backprop
+from backprop2 import python_backprop
 
 
 n_outputs = 1
@@ -163,7 +163,7 @@ def cost_func(
     return cost
 
 
-def backprop(theta: List[float], x: float, obs: Observable) -> List[float]:
+def backprop(theta: List[float], x: float, obs: Observable, coef: float) -> List[float]:
     circuit = ParametricQuantumCircuit(n_qubit)
     for i in range(n_qubit):
         circuit.add_RY_gate(i, np.arcsin(x) * 2)
@@ -172,7 +172,7 @@ def backprop(theta: List[float], x: float, obs: Observable) -> List[float]:
     circuit.merge_circuit(ansatz)
 
     # ret = circuit.backprop(obs)
-    ret = python_backprop(circuit, obs)
+    ret = python_backprop(circuit, obs, coef)
     ans = [0.0] * len(theta)
     for i in range(len(theta)):
         ans[i] += ret[i]
@@ -196,12 +196,14 @@ def _cost_func_grad(
 
     n_qubit = ansatz.get_qubit_count()
     for h in range(len(x_scaled)):
+        #coef = 2 * (-y_scaled[h] + mto[h][0]) / n_outputs
+        coef = (-y_scaled[h] + mto[h][0])
         backobs = Observable(n_qubit)
         backobs.add_operator(
-            2 * (-y_scaled[h] + mto[h][0]) / n_outputs,
+            coef,
             observables_str[0],
         )
-        grad = grad + backprop(theta, x_scaled[h], backobs)
+        grad = grad + backprop(theta, x_scaled[h], backobs, coef)
 
     grad /= len(x_scaled)
     return grad
