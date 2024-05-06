@@ -18,7 +18,7 @@ from qulacs import (
 )
 from qulacs.gate import DenseMatrix
 
-from backprop2 import python_backprop
+from backprop3 import python_backprop
 
 
 n_outputs = 1
