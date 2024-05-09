@@ -51,9 +51,12 @@ def python_backprop(circ: ParametricQuantumCircuit, obs: Observable) -> List[flo
 
             # 期待値測定
             backobs = Observable(n)
+            obs_str = ""
+            for i in range(n):
+                obs_str += f"Z {i} "
             backobs.add_operator(
                 1.0,
-                "Z 0",
+                obs_str,
             )
             ans[inverse_parametric_gate_position[i]] = backobs.get_expectation_value(
                 state
