@@ -5,13 +5,16 @@ from qulacs import Observable, ParametricQuantumCircuit, QuantumState, gate
 from qulacs.state import inner_product
 
 
-def backprop_inner_product(
-    circ: ParametricQuantumCircuit, bistate: QuantumState
-) -> List[float]:
+def python_backprop(circ: ParametricQuantumCircuit, obs: Observable) -> List[float]:
     n = circ.get_qubit_count()
     state = QuantumState(n)
     state.set_zero_state()
     circ.update_quantum_state(state)
+
+    bistate = QuantumState(n)
+    astate = QuantumState(n)
+    obs.apply_to_state(astate, state, bistate)
+    # bistate.multiply_coef(2)
 
     num_gates = circ.get_gate_count()
     inverse_parametric_gate_position = [-1] * num_gates
@@ -30,6 +33,7 @@ def backprop_inner_product(
                 rcpi = gate.RZ(gate_now.get_target_index_list()[0], math.pi)
             else:
                 raise RuntimeError()
+
             rcpi.update_quantum_state(state)
             ans[inverse_parametric_gate_position[i]] = (
                 # inner_product(bistate, state).real / 2.0
@@ -40,16 +44,3 @@ def backprop_inner_product(
         agate.update_quantum_state(bistate)
         agate.update_quantum_state(state)
     return ans
-
-
-# bistate: Observableとcirc適用済みの状態
-def python_backprop(circ: ParametricQuantumCircuit, obs: Observable) -> List[float]:
-    n = circ.get_qubit_count()
-    state = QuantumState(n)
-    state.set_zero_state()
-    circ.update_quantum_state(state)
-    bistate = QuantumState(n)
-    astate = QuantumState(n)
-    obs.apply_to_state(astate, state, bistate)
-    # bistate.multiply_coef(2)
-    return backprop_inner_product(circ, bistate)

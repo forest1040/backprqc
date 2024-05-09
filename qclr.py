@@ -20,6 +20,8 @@ from qulacs.gate import DenseMatrix
 
 from backprop3 import python_backprop
 
+# from backprop import python_backprop
+
 
 n_outputs = 1
 ansatz = None
@@ -172,7 +174,7 @@ def backprop(theta: List[float], x: float, obs: Observable, coef: float) -> List
     circuit.merge_circuit(ansatz)
 
     # ret = circuit.backprop(obs)
-    ret = python_backprop(circuit, obs, coef)
+    ret = python_backprop(circuit, obs)
     ans = [0.0] * len(theta)
     for i in range(len(theta)):
         ans[i] += ret[i]
@@ -196,8 +198,8 @@ def _cost_func_grad(
 
     n_qubit = ansatz.get_qubit_count()
     for h in range(len(x_scaled)):
-        #coef = 2 * (-y_scaled[h] + mto[h][0]) / n_outputs
-        coef = (-y_scaled[h] + mto[h][0])
+        # coef = 2 * (-y_scaled[h] + mto[h][0]) / n_outputs
+        coef = -y_scaled[h] + mto[h][0]
         backobs = Observable(n_qubit)
         backobs.add_operator(
             coef,
@@ -256,15 +258,13 @@ num_x = 80
 x_train, y_train = generate_noisy_sine(x_min, x_max, num_x)
 x_test, y_test = generate_noisy_sine(x_min, x_max, num_x)
 
-n_qubit = 4
-depth = 6
-
-# n_qubit = 3
+# n_qubit = 4
 # depth = 6
+# maxiter = 30
 
-# n_qubit = 6
-# depth = 10
-maxiter = 30
+n_qubit = 2
+depth = 1
+maxiter = 1
 ansatz = create_farhi_neven_ansatz(n_qubit, depth)
 opt_loss, opt_params = fit(x_train, y_train, maxiter)
 print("trained parameters", opt_params)
